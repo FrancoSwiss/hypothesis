@@ -1,0 +1,31 @@
+```{r}
+library(tidyverse)
+library(infer)
+
+promotions <- read_csv("/Users/francoarda/Desktop/Tableau/Green_Destinations/greendestination.csv")
+
+promotions %>% 
+  group_by(Gender, Decision) %>% 
+  tally()
+
+# MALE: 203 / (203 + 679) = 23%
+# FEMALE: 117 / (117+ 471) = 20%
+
+null_distribution <- promotions %>% 
+  specify(formula = Decision ~ Gender, success = "Promoted") %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 1000, type = "permute") %>% 
+  calculate(stat = "diff in props", order = c("Male", "Female"))
+null_distribution
+  
+obs_diff_prop <- promotions %>% 
+  specify(Decision ~ Gender, success = "Promoted") %>% 
+  calculate(stat = "diff in props", order = c("Male", "Female"))
+obs_diff_prop
+# 3.12% difference in proportion
+
+visualize(null_distribution, bins = 50) +
+  shade_p_value(obs_stat = obs_diff_prop, direction = "right")
+
+```
+
